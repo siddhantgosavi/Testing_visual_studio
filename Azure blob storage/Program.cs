@@ -16,7 +16,6 @@ namespace Azure_blob_storage
         {
             try
             {
-
                 Console.WriteLine("Parsing storage account key");
                 // Parse the connection string and return a reference to the storage account.
                 CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
