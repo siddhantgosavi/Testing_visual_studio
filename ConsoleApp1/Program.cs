@@ -18,6 +18,7 @@ namespace ConsoleApp1
                 SmtpClient SmtpServer = new SmtpClient("smtp.gmail.com");
 
                 mail.From = new MailAddress("siddhant.gosavi23994@gmail.com");
+
                 mail.To.Add("siddhant.gosavi@rediffmail.com");
                 mail.Subject = "Test Mail";
                 mail.Body = "This is for testing SMTP mail from GMAIL";

@@ -17,29 +17,43 @@ namespace SqlTest_CSharp
             // will be available throughout this block.
             using (SqlConnection conn = new SqlConnection())
             {
-                // Create the connectionString
-                // Trusted_Connection is used to denote the connection uses Windows Authentication
-                conn.ConnectionString = "Server=[server_name];Database=[database_name];Trusted_Connection=true";
-                conn.Open();
-                // Create the command
-                SqlCommand command = new SqlCommand("SELECT * FROM TableName WHERE FirstColumn = @0", conn);
-                // Add the parameters.
-                command.Parameters.Add(new SqlParameter("0", 1));
-
-                /* Get the rows and display on the screen! 
-                 * This section of the code has the basic code
-                 * that will display the content from the Database Table
-                 * on the screen using an SqlDataReader. */
-
-                using (SqlDataReader reader = command.ExecuteReader())
+                try
                 {
-                    Console.WriteLine("FirstColumn\tSecond Column\t\tThird Column\t\tForth Column\t");
-                    while (reader.Read())
+                    // Create the connectionString
+                    // Trusted_Connection is used to denote the connection uses Windows Authentication
+                    //conn.ConnectionString = "Server=[server_name];Database=[database_name];Trusted_Connection=true";
+                    conn.ConnectionString = "Server=HJD024652\\SQLEXPRESS;" + "Database=Test;" + "User id=sa;" + "Password=P@ssw0rd0000;";
+                    conn.Open();
+                    Console.WriteLine("Conn successfull");
+                    // Create the command
+                    //SqlCommand command = new SqlCommand("SELECT * from TEST_table", conn);
+                    SqlCommand command = new SqlCommand("SELECT name FROM TEST_table WHERE id = 2;", conn);
+                    // Add the parameters.
+                    // command.Parameters.Add(new SqlParameter("0", "TEST_table"));
+                    //command.Parameters.Add(new SqlParameter("1", "2"));
+
+                    Console.WriteLine("Command created");
+
+                    /* Get the rows and display on the screen!
+                     * This section of the code has the basic code
+                     * that will display the content from the Database Table
+                     * on the screen using an SqlDataReader. */
+                    Console.WriteLine("Creating reader and geting data");
+
+                    using (SqlDataReader reader = command.ExecuteReader())
                     {
-                        Console.WriteLine(String.Format("{0} \t | {1} \t | {2} \t | {3}",
-                            reader[0], reader[1], reader[2], reader[3]));
+                        Console.WriteLine("FirstColumn\tsecond column");
+                        while (reader.Read())
+                        {
+                            Console.WriteLine(String.Format("{0} \t", reader[0]));
+                        }
                     }
                 }
+                catch(Exception ex)
+                {
+                    Console.Write(ex.Message);
+                }
+
                 Console.WriteLine("Data displayed! Now press enter to move to the next section!");
                 Console.ReadLine();
                 Console.Clear();
