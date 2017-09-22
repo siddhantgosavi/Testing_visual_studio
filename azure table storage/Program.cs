@@ -20,6 +20,8 @@ namespace AzureStorageService_POC
             cloudStorageConnection = GetStorageAccountConnection(_storageConnectionSting);
         }
 
+
+
         #region Public Methods
 
         public virtual async Task<List<T>> GetPartitionAsync(string _tableName, string partitionKey, int takeCount = 1000)

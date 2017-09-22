@@ -19,7 +19,7 @@ namespace Azure_blob_storage
                 Console.WriteLine("Parsing storage account key");
                 // Parse the connection string and return a reference to the storage account.
                 CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
-                    CloudConfigurationManager.GetSetting("StorageConnectionStringTest"));
+                    CloudConfigurationManager.GetSetting("StorageConnectionStringSid"));
 
                 Console.WriteLine("Creating blob client");
                 //Creating a Cloud Blob Client
@@ -30,7 +30,7 @@ namespace Azure_blob_storage
                 //In .Net Code u ll require a connection string
 
                 // Retrieve a reference to a container.
-                CloudBlobContainer container = blobClient.GetContainerReference("testcontainerfromcode");
+                CloudBlobContainer container = blobClient.GetContainerReference("testcontainerfromcode1");
 
                 Console.WriteLine("Container reference created \n creating container");
 
@@ -39,11 +39,11 @@ namespace Azure_blob_storage
                 
                 Console.WriteLine("created container");
 
+
+
                 container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
                 Console.WriteLine("public permission given");
-
-
 
             }
             catch(Exception ex)
