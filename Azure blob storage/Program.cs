@@ -37,6 +37,7 @@ namespace Azure_blob_storage
                 // Create the container if it doesn't already exist.
                 container.CreateIfNotExists();
 
+
                 Console.WriteLine("created container");
 
                 container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
