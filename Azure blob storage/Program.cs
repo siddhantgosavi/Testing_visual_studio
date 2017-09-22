@@ -42,6 +42,9 @@ namespace Azure_blob_storage
                 container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
                 Console.WriteLine("public permission given");
+
+
+
             }
             catch(Exception ex)
             {
