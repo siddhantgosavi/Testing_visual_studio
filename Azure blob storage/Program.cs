@@ -13,11 +13,12 @@ namespace Azure_blob_storage
 {
     class Program
     {
-        // Parse the connection string and return a reference to the storage account.
+        //Declaring a storage account
         private static CloudStorageAccount _storageAccount;        
 
         static void Main(string[] args)
         {
+            // Parse the connection string and return a reference to the storage account.
             _storageAccount = CloudStorageAccount.Parse(
                     CloudConfigurationManager.GetSetting("StorageConnectionStringTest"));
 
@@ -26,7 +27,7 @@ namespace Azure_blob_storage
                 while (true)
                 {
                     Console.WriteLine("1.List all Containers\n2.Create a new container\n3.Insert a file in container\n4.Insert files from a folder\n5.Get all files from container\n");
-                    int option = Console.Read();
+                    int option = Console.Read() - 48;
                     switch (option)
                     {
                         case 1:
@@ -36,12 +37,21 @@ namespace Azure_blob_storage
                             }
                         case 2:
                             {
-                                CreateNewContainer("put a container name");
+                                CreateNewContainer("second");
                                 break;
                             }
                         case 3:
                             {
-                                InsertBlobInContainer("Put a file path");
+                                string ContainerNameToUploadTo, PathOfFileTOUpload;
+
+                                Console.WriteLine("\nEnter the Container Name : ");
+                                ContainerNameToUploadTo = Console.ReadLine();
+                                ContainerNameToUploadTo = Console.ReadLine();
+
+                                Console.WriteLine("\nEnter file path : ");
+                                PathOfFileTOUpload = Console.ReadLine().Trim('"',' ','\\','/','@');
+                                                                
+                                InsertBlobInContainer(ContainerNameToUploadTo, PathOfFileTOUpload);
                                 break;
                             }
                         case 4:
@@ -107,9 +117,22 @@ namespace Azure_blob_storage
         /// </summary>
         /// <param name="Filepath"></param>
         /// <returns></returns>
-        private static void InsertBlobInContainer(String Filepath)
+        private static void InsertBlobInContainer(String ContainerName, String Filepath)
         {
-            
+            CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
+
+            // Retrieve reference to a previously created container.
+            CloudBlobContainer container = blobClient.GetContainerReference(ContainerName);
+
+            String File = Filepath.Split('\\').Last();
+            // Retrieve reference to a blob named "myblob".
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(File);
+
+            // Create or overwrite the "myblob" blob with contents from a local file.
+            using (var fileStream = System.IO.File.OpenRead(Filepath))
+            {
+                blockBlob.UploadFromStream(fileStream);
+            }
         }
 
         /// <summary>
