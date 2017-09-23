@@ -26,8 +26,9 @@ namespace Azure_blob_storage
             {
                 while (true)
                 {
-                    Console.WriteLine("1.List all Containers\n2.Create a new container\n3.Insert a file in container\n4.Insert files from a folder\n5.Get all files from container\n");
-                    int option = Console.Read() - 48;
+                    Console.WriteLine("1.List all Containers\n2.Create a new container\n3.Insert a file in container\n4.Insert files from a folder\n5.Show all files from container");
+                    Console.Read();
+                    int  option = Console.Read() - 48;
                     switch (option)
                     {
                         case 1:
@@ -37,18 +38,21 @@ namespace Azure_blob_storage
                             }
                         case 2:
                             {
-                                CreateNewContainer("second");
+                                Console.WriteLine("Enter the name of conteiner to be created : ");
+                                string ContainerNameToBeCreated = Console.ReadLine();
+                                ContainerNameToBeCreated = Console.ReadLine().Trim();
+                                CreateNewContainer(ContainerNameToBeCreated);
                                 break;
                             }
                         case 3:
                             {
                                 string ContainerNameToUploadTo, PathOfFileTOUpload;
 
-                                Console.WriteLine("\nEnter the Container Name : ");
+                                Console.WriteLine("Enter the Container Name : ");
                                 ContainerNameToUploadTo = Console.ReadLine();
                                 ContainerNameToUploadTo = Console.ReadLine();
 
-                                Console.WriteLine("\nEnter file path : ");
+                                Console.WriteLine("Enter file path : ");
                                 PathOfFileTOUpload = Console.ReadLine().Trim('"',' ','\\','/','@');
                                                                 
                                 InsertBlobInContainer(ContainerNameToUploadTo, PathOfFileTOUpload);
@@ -61,7 +65,8 @@ namespace Azure_blob_storage
                             }
                         case 5:
                             {
-                                IEnumerable<Byte[]> AllBolbs = GetAllBlobsFromContainer("Put name of the container here");
+                                
+                                ShowAllBlobsFromContainer("test");
                                 break;
                             }
                         default:
@@ -123,7 +128,7 @@ namespace Azure_blob_storage
 
             // Retrieve reference to a previously created container.
             CloudBlobContainer container = blobClient.GetContainerReference(ContainerName);
-
+            
             String File = Filepath.Split('\\').Last();
             // Retrieve reference to a blob named "myblob".
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(File);
@@ -150,11 +155,38 @@ namespace Azure_blob_storage
         /// </summary>
         /// <param name="ContainerName"></param>
         /// <returns></returns>
-        private static IEnumerable<Byte[]> GetAllBlobsFromContainer(String ContainerName)
+        private static void ShowAllBlobsFromContainer(String ContainerName)
         {
-            
-            return new List<Byte[]>();
-        }
+            // Create the blob client.
+            CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
 
+            // Retrieve reference to a previously created container.
+            CloudBlobContainer container = blobClient.GetContainerReference(ContainerName);
+
+            // Loop over items within the container and output the length and URI.
+            foreach (IListBlobItem item in container.ListBlobs(null, false))
+            {
+                if (item.GetType() == typeof(CloudBlockBlob))
+                {
+                    CloudBlockBlob blob = (CloudBlockBlob)item;
+
+                    Console.WriteLine("Block blob of length {0}: {1}", blob.Properties.Length, blob.Uri);
+
+                }
+                else if (item.GetType() == typeof(CloudPageBlob))
+                {
+                    CloudPageBlob pageBlob = (CloudPageBlob)item;
+
+                    Console.WriteLine("Page blob of length {0}: {1}", pageBlob.Properties.Length, pageBlob.Uri);
+
+                }
+                else if (item.GetType() == typeof(CloudBlobDirectory))
+                {
+                    CloudBlobDirectory directory = (CloudBlobDirectory)item;
+
+                    Console.WriteLine("Directory: {0}", directory.Uri);
+                }
+            }
+        }
     }
 }
