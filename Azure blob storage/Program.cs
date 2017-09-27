@@ -1,14 +1,10 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.WindowsAzure; // Namespace for CloudConfigurationManager
 using Microsoft.WindowsAzure.Storage; // Namespace for CloudStorageAccount
 using Microsoft.WindowsAzure.Storage.Blob; // Namespace for Blob storage types
 using Microsoft.Azure; //Namespace for CloudConfigurationManager
-using Microsoft.Azure.Management.Storage.Models;
-using System.IO;
 
 namespace Azure_blob_storage
 {
@@ -23,9 +19,9 @@ namespace Azure_blob_storage
             _storageAccount = CloudStorageAccount.Parse(
                     CloudConfigurationManager.GetSetting("StorageConnectionStringTest"));
 
-            try
+            while (true)
             {
-                while (true)
+                try
                 {
                     Console.WriteLine("Press the key of your choice\n\n1.List all Containers\n2.Create a new container\n3.Insert a file in container\n4.Insert files from a folder\n5.Show all files from container\n");
                     int option = Console.ReadKey().KeyChar - 48;
@@ -40,7 +36,7 @@ namespace Azure_blob_storage
                             {
                                 Console.Write("\nEnter the name of containor to be created : ");
                                 string ContainerNameToBeCreated = Console.ReadLine();
-                                
+
                                 CreateNewContainer(ContainerNameToBeCreated);
                                 break;
                             }
@@ -50,8 +46,8 @@ namespace Azure_blob_storage
                                 string ContainorNameToUploadTo = Console.ReadLine();
 
                                 Console.Write("\nEnter file path (drag and drop) : ");
-                                string PathOfFileTOUpload = Console.ReadLine().Trim('"',' ','\\','/','@');
-                                                                
+                                string PathOfFileTOUpload = Console.ReadLine().Trim('"', ' ', '\\', '/', '@');
+
                                 InsertBlobInContainer(ContainorNameToUploadTo, PathOfFileTOUpload);
                                 break;
                             }
@@ -77,19 +73,19 @@ namespace Azure_blob_storage
                             {
                                 break;
                             }
-                    }                    
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
                 }
             }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+
         }
-        
+
         /// <summary>
-        /// 
+        /// This method displays all containers in the azure storage account.
         /// </summary>
-        /// <returns></returns>
         private static void GetAllContainers()
         {
             //Creating a Cloud Blob Client
@@ -105,11 +101,11 @@ namespace Azure_blob_storage
         }
 
         /// <summary>
-        /// 
+        /// This method creates a new blob container in azure storage account.
         /// </summary>
-        /// <param name="ContainerNameToBeCreated"></param>
+        /// <param name="ContainerNameToBeCreated">The name of the container to be created.</param>
         private static void CreateNewContainer(String ContainerNameToBeCreated)
-        { 
+        {
             //Creating a Cloud Blob Client
             CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
 
@@ -118,7 +114,7 @@ namespace Azure_blob_storage
 
             // Create the container if it doesn't already exist.
             container.CreateIfNotExists();
-           
+
             container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
             Console.WriteLine("\nContainer created with public permission");
@@ -127,10 +123,10 @@ namespace Azure_blob_storage
         }
 
         /// <summary>
-        /// 
+        /// This method inserts a file in blob container.
         /// </summary>
-        /// <param name="FilePath"></param>
-        /// <returns></returns>
+        /// <param name="ContainerName">Name of the container to upload  file into.</param>
+        /// <param name="FilePath">Path of the file which is to be uploaded.</param>
         private static void InsertBlobInContainer(String ContainerName, String FilePath)
         {
             CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
@@ -139,16 +135,16 @@ namespace Azure_blob_storage
             CloudBlobContainer Container = blobClient.GetContainerReference(ContainerName);
 
             UploadToContainer(Container, FilePath);
-        
+
             Console.WriteLine("\nFile uploaded successfully");
             Console.WriteLine("\n------------------------------------------------------------------------------------------");
         }
 
         /// <summary>
-        /// 
+        /// This method inserts all files from a folder in bolb container.
         /// </summary>
-        /// <param name="Folderpath"></param>
-        /// <returns></returns>
+        /// <param name="ContainerName">Name of the container to upload the files into.</param>
+        /// <param name="Folderpath">Path of the folder from which fies are to be uploaded.</param>
         private static void InsertBolbsFromFolderToContainer(String ContainerName, String Folderpath)
         {
             CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
@@ -166,10 +162,9 @@ namespace Azure_blob_storage
         }
 
         /// <summary>
-        /// 
+        /// This method displays all files in a bolb container.
         /// </summary>
-        /// <param name="ContainerName"></param>
-        /// <returns></returns>
+        /// <param name="ContainerName">Name of the container to display all files from.</param>
         private static void ShowAllBlobsFromContainer(String ContainerName)
         {
             // Create the blob client.
@@ -204,6 +199,11 @@ namespace Azure_blob_storage
             Console.WriteLine("\n------------------------------------------------------------------------------------------");
         }
 
+        /// <summary>
+        /// This method uploads a file to bolb container.
+        /// </summary>
+        /// <param name="ContainerName">Name of the container to upload  file into.</param>
+        /// <param name="FilePath">Path of the file which is to be uploaded.</param>
         private static void UploadToContainer(CloudBlobContainer ContainerName, String FilePath)
         {
             String File = FilePath.Split('\\').Last();
