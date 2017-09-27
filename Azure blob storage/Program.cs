@@ -8,13 +8,14 @@ using Microsoft.WindowsAzure.Storage; // Namespace for CloudStorageAccount
 using Microsoft.WindowsAzure.Storage.Blob; // Namespace for Blob storage types
 using Microsoft.Azure; //Namespace for CloudConfigurationManager
 using Microsoft.Azure.Management.Storage.Models;
+using System.IO;
 
 namespace Azure_blob_storage
 {
     class Program
     {
         //Declaring a storage account
-        private static CloudStorageAccount _storageAccount;        
+        private static CloudStorageAccount _storageAccount;
 
         static void Main(string[] args)
         {
@@ -26,47 +27,50 @@ namespace Azure_blob_storage
             {
                 while (true)
                 {
-                    Console.WriteLine("1.List all Containers\n2.Create a new container\n3.Insert a file in container\n4.Insert files from a folder\n5.Show all files from container");
-                    Console.Read();
-                    int  option = Console.Read() - 48;
+                    Console.WriteLine("Press the key of your choice\n\n1.List all Containers\n2.Create a new container\n3.Insert a file in container\n4.Insert files from a folder\n5.Show all files from container\n");
+                    int option = Console.ReadKey().KeyChar - 48;
                     switch (option)
                     {
                         case 1:
                             {
-                                IEnumerable<string> AllFiles = GetAllContainers();
+                                GetAllContainers();
                                 break;
                             }
                         case 2:
                             {
-                                Console.WriteLine("Enter the name of conteiner to be created : ");
+                                Console.Write("\nEnter the name of containor to be created : ");
                                 string ContainerNameToBeCreated = Console.ReadLine();
-                                ContainerNameToBeCreated = Console.ReadLine().Trim();
+                                
                                 CreateNewContainer(ContainerNameToBeCreated);
                                 break;
                             }
                         case 3:
                             {
-                                string ContainerNameToUploadTo, PathOfFileTOUpload;
+                                Console.Write("\nEnter the Container Name : ");
+                                string ContainorNameToUploadTo = Console.ReadLine();
 
-                                Console.WriteLine("Enter the Container Name : ");
-                                ContainerNameToUploadTo = Console.ReadLine();
-                                ContainerNameToUploadTo = Console.ReadLine();
-
-                                Console.WriteLine("Enter file path : ");
-                                PathOfFileTOUpload = Console.ReadLine().Trim('"',' ','\\','/','@');
+                                Console.Write("\nEnter file path (drag and drop) : ");
+                                string PathOfFileTOUpload = Console.ReadLine().Trim('"',' ','\\','/','@');
                                                                 
-                                InsertBlobInContainer(ContainerNameToUploadTo, PathOfFileTOUpload);
+                                InsertBlobInContainer(ContainorNameToUploadTo, PathOfFileTOUpload);
                                 break;
                             }
                         case 4:
                             {
-                                InsertBolbsFromFolderToContainer("Insert a folder path here");
+                                Console.Write("\nEnter the Container Name : ");
+                                string ContainorNameToUploadTo = Console.ReadLine();
+
+                                Console.Write("\nEnter path of the folder (drag and drop) : ");
+                                string SourceFolder = Console.ReadLine();
+
+                                InsertBolbsFromFolderToContainer(ContainorNameToUploadTo, SourceFolder);
                                 break;
                             }
                         case 5:
                             {
-                                
-                                ShowAllBlobsFromContainer("test");
+                                Console.Write("\nEnter the name of the container : ");
+                                string ContaibnerName = Console.ReadLine();
+                                ShowAllBlobsFromContainer(ContaibnerName);
                                 break;
                             }
                         default:
@@ -86,10 +90,18 @@ namespace Azure_blob_storage
         /// 
         /// </summary>
         /// <returns></returns>
-        private static IEnumerable<String> GetAllContainers()
+        private static void GetAllContainers()
         {
+            //Creating a Cloud Blob Client
+            CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
 
-            return new List<String>();
+            IEnumerable<CloudBlobContainer> ContainerList = blobClient.ListContainers();
+            Console.WriteLine();
+            foreach (CloudBlobContainer Container in ContainerList)
+            {
+                Console.WriteLine(Container.Name);
+            }
+            Console.WriteLine("\n------------------------------------------------------------------------------------------");
         }
 
         /// <summary>
@@ -98,46 +110,38 @@ namespace Azure_blob_storage
         /// <param name="ContainerNameToBeCreated"></param>
         private static void CreateNewContainer(String ContainerNameToBeCreated)
         { 
-            Console.WriteLine("Creating blob client");
             //Creating a Cloud Blob Client
             CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
 
             // Retrieve a reference to a container.
             CloudBlobContainer container = blobClient.GetContainerReference(ContainerNameToBeCreated);
-            Console.WriteLine(ContainerNameToBeCreated);
-            Console.WriteLine("Container reference created \n creating container");
 
             // Create the container if it doesn't already exist.
             container.CreateIfNotExists();
-            
-            Console.WriteLine("container created");
-
+           
             container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
-            Console.WriteLine("public permission given");
+            Console.WriteLine("\nContainer created with public permission");
+
+            Console.WriteLine("\n------------------------------------------------------------------------------------------");
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="Filepath"></param>
+        /// <param name="FilePath"></param>
         /// <returns></returns>
-        private static void InsertBlobInContainer(String ContainerName, String Filepath)
+        private static void InsertBlobInContainer(String ContainerName, String FilePath)
         {
             CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
 
             // Retrieve reference to a previously created container.
-            CloudBlobContainer container = blobClient.GetContainerReference(ContainerName);
-            
-            String File = Filepath.Split('\\').Last();
-            // Retrieve reference to a blob named "myblob".
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(File);
+            CloudBlobContainer Container = blobClient.GetContainerReference(ContainerName);
 
-            // Create or overwrite the "myblob" blob with contents from a local file.
-            using (var fileStream = System.IO.File.OpenRead(Filepath))
-            {
-                blockBlob.UploadFromStream(fileStream);
-            }
+            UploadToContainer(Container, FilePath);
+        
+            Console.WriteLine("\nFile uploaded successfully");
+            Console.WriteLine("\n------------------------------------------------------------------------------------------");
         }
 
         /// <summary>
@@ -145,9 +149,20 @@ namespace Azure_blob_storage
         /// </summary>
         /// <param name="Folderpath"></param>
         /// <returns></returns>
-        private static void InsertBolbsFromFolderToContainer(String Folderpath)
+        private static void InsertBolbsFromFolderToContainer(String ContainerName, String Folderpath)
         {
-            
+            CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
+
+            // Retrieve reference to a previously created container.
+            CloudBlobContainer Container = blobClient.GetContainerReference(ContainerName);
+
+            string[] FileEntries = Directory.GetFiles(Folderpath);
+            foreach (string FilePath in FileEntries)
+            {
+                UploadToContainer(Container, FilePath);
+            }
+            Console.WriteLine("\nAll files uploaded successfully");
+            Console.WriteLine("\n------------------------------------------------------------------------------------------");
         }
 
         /// <summary>
@@ -171,7 +186,6 @@ namespace Azure_blob_storage
                     CloudBlockBlob blob = (CloudBlockBlob)item;
 
                     Console.WriteLine("Block blob of length {0}: {1}", blob.Properties.Length, blob.Uri);
-
                 }
                 else if (item.GetType() == typeof(CloudPageBlob))
                 {
@@ -186,6 +200,20 @@ namespace Azure_blob_storage
 
                     Console.WriteLine("Directory: {0}", directory.Uri);
                 }
+            }
+            Console.WriteLine("\n------------------------------------------------------------------------------------------");
+        }
+
+        private static void UploadToContainer(CloudBlobContainer ContainerName, String FilePath)
+        {
+            String File = FilePath.Split('\\').Last();
+            // Retrieve reference to a blob named "myblob".
+            CloudBlockBlob blockBlob = ContainerName.GetBlockBlobReference(File);
+
+            // Create or overwrite the "myblob" blob with contents from a local file.
+            using (var fileStream = System.IO.File.OpenRead(FilePath))
+            {
+                blockBlob.UploadFromStream(fileStream);
             }
         }
     }
