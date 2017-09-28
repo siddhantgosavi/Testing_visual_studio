@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage; // Namespace for CloudStorageAccount
 using Microsoft.WindowsAzure.Storage.Blob; // Namespace for Blob storage types
 using Microsoft.Azure; //Namespace for CloudConfigurationManager
@@ -23,7 +24,7 @@ namespace Azure_blob_storage
             {
                 try
                 {
-                    Console.WriteLine("Press the key of your choice\n\n1.List all Containers\n2.Create a new container\n3.Insert a file in container\n4.Insert files from a folder\n5.Show all files from container\n6.Download a file from container\n");
+                    Console.WriteLine("Press the key of your choice\n\n1.List all Containers\n2.Create a new container\n3.Insert a file in container\n4.Insert files from a folder\n5.Show all files from container\n6.Download a file from container\n7.Download all files from container\n");
                     int option = Console.ReadKey().KeyChar - 48;
                     switch (option)
                     {
@@ -81,6 +82,17 @@ namespace Azure_blob_storage
                                 string NameOfFileToDownload = Console.ReadLine().Trim('"', ' ', '\\', '/', '@');
 
                                 DownloadBlobFromContainer(ContainerNameToDownloadFrom, PathOfFileToDownload+"\\"+NameOfFileToDownload);
+                                break;
+                            }
+                        case 7:
+                            {
+                                Console.Write("\nEnter the Container Name : ");
+                                string ContainerNameToDownloadFrom = Console.ReadLine();
+
+                                Console.Write("\nEnter path to download the file : ");
+                                string PathOfFolderToDownload = Console.ReadLine().Trim('"', ' ', '\\', '/', '@');
+
+                                DownloadAllBlobsFromContainer(ContainerNameToDownloadFrom, PathOfFolderToDownload);
                                 break;
                             }
                         default:
@@ -201,7 +213,7 @@ namespace Azure_blob_storage
                     CloudPageBlob pageBlob = (CloudPageBlob)item;
 
                     Console.WriteLine("Page blob of length {0}: {1}", pageBlob.Properties.Length, pageBlob.Uri);
-
+                    
                 }
                 else if (item.GetType() == typeof(CloudBlobDirectory))
                 {
@@ -227,7 +239,85 @@ namespace Azure_blob_storage
             CloudBlobContainer container = blobClient.GetContainerReference(ContainerName);
 
             DownloadFromContainer(container, FilePath);
+
             Console.WriteLine("\nFile is downloaded successfully");
+            Console.WriteLine("\n------------------------------------------------------------------------------------------");
+        }
+
+        /// <summary>
+        /// This method downloads all files from a container to a folder.
+        /// </summary>
+        /// <param name="ContainerName">Name of the container to download the files from.</param>
+        /// <param name="FolderPath">Path of the folder where files are to be downloaded.</param>
+        private static void DownloadAllBlobsFromContainer(String ContainerName, String FolderPath)
+        {
+            List<string> UriList = new List<string>();
+
+            // Create the blob client.
+            CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
+
+            // Retrieve reference to a previously created container.
+            CloudBlobContainer container = blobClient.GetContainerReference(ContainerName);
+            
+            // Loop over items within the container and get all bolb's name and container.
+            foreach (IListBlobItem item in container.ListBlobs(null, false))
+            {
+                if (item.GetType() == typeof(CloudBlockBlob))
+                {
+                    CloudBlockBlob blob = (CloudBlockBlob)item;
+                    
+                    UriList.Add((blob.Container).Name + "\\" + blob.Name);
+                }
+                else if (item.GetType() == typeof(CloudPageBlob))
+                {
+                    CloudPageBlob pageBlob = (CloudPageBlob)item;
+
+                    UriList.Add((pageBlob.Container).Name + "\\" + pageBlob.Name);
+                }
+                //else if (item.GetType() == typeof(CloudBlobDirectory))
+                //{
+                //    CloudBlobDirectory directory = (CloudBlobDirectory)item;
+
+                //    UriList.Add((directory.Container).Name + "\\" + directory.Uri.ToString().Split('\\').Last());
+                //}
+            }
+
+            //Loop over all uri and download them.
+
+            //Normal way
+
+            //foreach (string Uri in UriList)
+            //{
+            //    String FolderName = Uri.Split('\\').First();
+            //    if (!Directory.Exists(FolderPath + "\\" + FolderName))
+            //        Directory.CreateDirectory(FolderPath + "\\" + FolderName);
+
+            //    DownloadFromContainer(container, FolderPath + "\\" + Uri);
+            //}
+
+            //Using List.ForEach()
+
+            //UriList.ForEach(Uri =>
+            //{
+            //    String FolderName = Uri.Split('\\').First();
+            //    if (!Directory.Exists(FolderPath + "\\" + FolderName))
+            //        Directory.CreateDirectory(FolderPath + "\\" + FolderName);
+
+            //    DownloadFromContainer(container, FolderPath + "\\" + Uri);
+            //});
+
+            //For parallel execution
+
+            Parallel.ForEach(UriList, Uri =>
+            {
+                String FolderName = Uri.Split('\\').First();
+                if (!Directory.Exists(FolderPath + "\\" + FolderName))
+                    Directory.CreateDirectory(FolderPath + "\\" + FolderName);
+
+                DownloadFromContainer(container, FolderPath + "\\" + Uri);
+            });
+
+            Console.WriteLine("\nAll file downloaded successfully");
             Console.WriteLine("\n------------------------------------------------------------------------------------------");
         }
 
