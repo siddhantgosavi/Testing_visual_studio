@@ -23,7 +23,7 @@ namespace Azure_blob_storage
             {
                 try
                 {
-                    Console.WriteLine("Press the key of your choice\n\n1.List all Containers\n2.Create a new container\n3.Insert a file in container\n4.Insert files from a folder\n5.Show all files from container\n");
+                    Console.WriteLine("Press the key of your choice\n\n1.List all Containers\n2.Create a new container\n3.Insert a file in container\n4.Insert files from a folder\n5.Show all files from container\n6.Download a file from container\n");
                     int option = Console.ReadKey().KeyChar - 48;
                     switch (option)
                     {
@@ -34,7 +34,7 @@ namespace Azure_blob_storage
                             }
                         case 2:
                             {
-                                Console.Write("\nEnter the name of containor to be created : ");
+                                Console.Write("\nEnter the name of containoer to be created : ");
                                 string ContainerNameToBeCreated = Console.ReadLine();
 
                                 CreateNewContainer(ContainerNameToBeCreated);
@@ -43,23 +43,23 @@ namespace Azure_blob_storage
                         case 3:
                             {
                                 Console.Write("\nEnter the Container Name : ");
-                                string ContainorNameToUploadTo = Console.ReadLine();
+                                string ContainerNameToUploadTo = Console.ReadLine();
 
                                 Console.Write("\nEnter file path (drag and drop) : ");
                                 string PathOfFileTOUpload = Console.ReadLine().Trim('"', ' ', '\\', '/', '@');
 
-                                InsertBlobInContainer(ContainorNameToUploadTo, PathOfFileTOUpload);
+                                InsertBlobInContainer(ContainerNameToUploadTo, PathOfFileTOUpload);
                                 break;
                             }
                         case 4:
                             {
                                 Console.Write("\nEnter the Container Name : ");
-                                string ContainorNameToUploadTo = Console.ReadLine();
+                                string ContainerNameToUploadTo = Console.ReadLine();
 
                                 Console.Write("\nEnter path of the folder (drag and drop) : ");
                                 string SourceFolder = Console.ReadLine();
 
-                                InsertBolbsFromFolderToContainer(ContainorNameToUploadTo, SourceFolder);
+                                InsertBolbsFromFolderToContainer(ContainerNameToUploadTo, SourceFolder);
                                 break;
                             }
                         case 5:
@@ -67,6 +67,20 @@ namespace Azure_blob_storage
                                 Console.Write("\nEnter the name of the container : ");
                                 string ContaibnerName = Console.ReadLine();
                                 ShowAllBlobsFromContainer(ContaibnerName);
+                                break;
+                            }
+                        case 6:
+                            {
+                                Console.Write("\nEnter the Container Name : ");
+                                string ContainerNameToDownloadFrom = Console.ReadLine();
+
+                                Console.Write("\nEnter path to download the file : ");
+                                string PathOfFileToDownload = Console.ReadLine().Trim('"', ' ', '\\', '/', '@');
+
+                                Console.Write("\nEnter the file name : ");
+                                string NameOfFileToDownload = Console.ReadLine().Trim('"', ' ', '\\', '/', '@');
+
+                                DownloadBlobFromContainer(ContainerNameToDownloadFrom, PathOfFileToDownload+"\\"+NameOfFileToDownload);
                                 break;
                             }
                         default:
@@ -144,7 +158,7 @@ namespace Azure_blob_storage
         /// This method inserts all files from a folder in bolb container.
         /// </summary>
         /// <param name="ContainerName">Name of the container to upload the files into.</param>
-        /// <param name="Folderpath">Path of the folder from which fies are to be uploaded.</param>
+        /// <param name="Folderpath">Path of the folder from which files are to be uploaded.</param>
         private static void InsertBolbsFromFolderToContainer(String ContainerName, String Folderpath)
         {
             CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
@@ -200,9 +214,27 @@ namespace Azure_blob_storage
         }
 
         /// <summary>
+        /// This method downloads a file from blob container.
+        /// </summary>
+        /// <param name="ContainerName">Name of the container to download the file from.</param>
+        /// <param name="Filepath">Path of the loaction where file is to be downloaded.</param>
+        private static void DownloadBlobFromContainer(String ContainerName, String FilePath)
+        {
+            // Create the blob client.
+            CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
+
+            // Retrieve reference to a previously created container.
+            CloudBlobContainer container = blobClient.GetContainerReference(ContainerName);
+
+            DownloadFromContainer(container, FilePath);
+            Console.WriteLine("\nFile is downloaded successfully");
+            Console.WriteLine("\n------------------------------------------------------------------------------------------");
+        }
+
+        /// <summary>
         /// This method uploads a file to bolb container.
         /// </summary>
-        /// <param name="ContainerName">Name of the container to upload  file into.</param>
+        /// <param name="ContainerName">Name of the container to upload file into.</param>
         /// <param name="FilePath">Path of the file which is to be uploaded.</param>
         private static void UploadToContainer(CloudBlobContainer ContainerName, String FilePath)
         {
@@ -214,6 +246,24 @@ namespace Azure_blob_storage
             using (var fileStream = System.IO.File.OpenRead(FilePath))
             {
                 blockBlob.UploadFromStream(fileStream);
+            }
+        }
+
+        /// <summary>
+        /// This method downloads a file from bolb container.
+        /// </summary>
+        /// <param name="ContainerName">Name of the container to download a file from.</param>
+        /// <param name="FilePath">Path of the loaction where files is to be downloaded.</param>
+        private static void DownloadFromContainer(CloudBlobContainer ContainerName, String FilePath)
+        {
+            String File = FilePath.Split('\\').Last();
+            // Retrieve reference to a blob named "photo1.jpg".
+            CloudBlockBlob blockBlob = ContainerName.GetBlockBlobReference(File);
+
+            // Save blob contents to a file.
+            using (var fileStream = System.IO.File.OpenWrite(FilePath))
+            {
+                blockBlob.DownloadToStream(fileStream);
             }
         }
     }
