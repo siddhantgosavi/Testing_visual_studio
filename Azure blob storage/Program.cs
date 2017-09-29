@@ -322,6 +322,15 @@ namespace Azure_blob_storage
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ContainerName"></param>
+        private static void DeleteContainer(String ContainerName)
+        {
+
+        }
+
+        /// <summary>
         /// This method uploads a file to bolb container.
         /// </summary>
         /// <param name="ContainerName">Name of the container to upload file into.</param>
