@@ -353,8 +353,8 @@ namespace Azure_blob_storage
         /// <summary>
         /// This method is used to delete a blob from a azure storage container.
         /// </summary>
-        /// <param name="ContainerName">Name of the container to download the files from.</param>
-        /// <param name="BlobName">Path of the folder where files are to be downloaded.</param>
+        /// <param name="ContainerName">Name of the container to delete a file from.</param>
+        /// <param name="BlobName">Name of the file tp be deleted.</param>
         private static void DeleteBlobFromContainer(String ContainerName, String BlobName)
         {
             // Create the blob client.
@@ -374,9 +374,9 @@ namespace Azure_blob_storage
         }
 
         /// <summary>
-        /// 
+        /// This method is used to delete an azure storage container.
         /// </summary>
-        /// <param name="ContainerName"></param>
+        /// <param name="ContainerName">Name of the container to be deleted.</param>
         private static void DeleteContainerFromStorage(String ContainerNameToBeDeleted)
         {
             //Creating a Cloud Blob Client
