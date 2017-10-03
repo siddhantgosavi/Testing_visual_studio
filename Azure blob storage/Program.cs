@@ -32,7 +32,8 @@ namespace Azure_blob_storage
                         "5.Show all files from container\n" +
                         "6.Download a file from container\n" +
                         "7.Download all files from container\n"+
-                        "8.Delete a file from container\n");
+                        "8.Delete a file from container\n" +
+                        "9.Delete a container\n");
                     int option = Console.ReadKey().KeyChar - 48;
                     switch (option)
                     {
@@ -112,6 +113,14 @@ namespace Azure_blob_storage
                                 string NameOfFileToDelete = Console.ReadLine().Trim('"', ' ', '\\', '/', '@');
 
                                 DeleteBlobFromContainer(ContainerNameToDeleteBlobFrom, NameOfFileToDelete);
+                                break;
+                            }
+                        case 9:
+                            {
+                                Console.Write("\nEnter the name of container to be deleted : ");
+                                string ContainerNameToBeDeleted = Console.ReadLine();
+
+                                DeleteContainerFromStorage(ContainerNameToBeDeleted);
                                 break;
                             }
                         default:
@@ -244,7 +253,7 @@ namespace Azure_blob_storage
             }
             Console.WriteLine("\n------------------------------------------------------------------------------------------");
         }
-
+        
         /// <summary>
         /// This method downloads a file from blob container.
         /// </summary>
@@ -368,9 +377,20 @@ namespace Azure_blob_storage
         /// 
         /// </summary>
         /// <param name="ContainerName"></param>
-        private static void DeleteContainerFromStorage(String ContainerName)
-        {            
-            
+        private static void DeleteContainerFromStorage(String ContainerNameToBeDeleted)
+        {
+            //Creating a Cloud Blob Client
+            CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
+
+            // Retrieve a reference to a container.
+            CloudBlobContainer container = blobClient.GetContainerReference(ContainerNameToBeDeleted);
+
+            // Create the container if it doesn't already exist.
+            container.Delete();
+
+            Console.WriteLine("\nContainer has been deleted.");
+
+            Console.WriteLine("\n------------------------------------------------------------------------------------------");
         }
 
         /// <summary>
