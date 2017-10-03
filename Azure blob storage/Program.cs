@@ -24,7 +24,15 @@ namespace Azure_blob_storage
             {
                 try
                 {
-                    Console.WriteLine("Press the key of your choice\n\n1.List all Containers\n2.Create a new container\n3.Insert a file in container\n4.Insert files from a folder\n5.Show all files from container\n6.Download a file from container\n7.Download all files from container\n");
+                    Console.WriteLine("Press the key of your choice\n\n" +
+                        "1.List all Containers\n" +
+                        "2.Create a new container\n" +
+                        "3.Insert a file in container\n" +
+                        "4.Insert files from a folder\n" +
+                        "5.Show all files from container\n" +
+                        "6.Download a file from container\n" +
+                        "7.Download all files from container\n"+
+                        "8.Delete a file from container\n");
                     int option = Console.ReadKey().KeyChar - 48;
                     switch (option)
                     {
@@ -95,6 +103,17 @@ namespace Azure_blob_storage
                                 DownloadAllBlobsFromContainer(ContainerNameToDownloadFrom, PathOfFolderToDownload);
                                 break;
                             }
+                        case 8:
+                            {
+                                Console.Write("\nEnter the Container Name : ");
+                                string ContainerNameToDeleteBlobFrom = Console.ReadLine();
+
+                                Console.Write("\nEnter the file name to delete : ");
+                                string NameOfFileToDelete = Console.ReadLine().Trim('"', ' ', '\\', '/', '@');
+
+                                DeleteBlobFromContainer(ContainerNameToDeleteBlobFrom, NameOfFileToDelete);
+                                break;
+                            }
                         default:
                             {
                                 break;
@@ -103,10 +122,11 @@ namespace Azure_blob_storage
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine("\n-----------------------------------------ERROR--------------------------------------------\n");
                     Console.WriteLine(ex.Message);
+                    Console.WriteLine("\n------------------------------------------------------------------------------------------");
                 }
             }
-
         }
 
         /// <summary>
@@ -322,12 +342,35 @@ namespace Azure_blob_storage
         }
 
         /// <summary>
+        /// This method is used to delete a blob from a azure storage container.
+        /// </summary>
+        /// <param name="ContainerName">Name of the container to download the files from.</param>
+        /// <param name="BlobName">Path of the folder where files are to be downloaded.</param>
+        private static void DeleteBlobFromContainer(String ContainerName, String BlobName)
+        {
+            // Create the blob client.
+            CloudBlobClient blobClient = _storageAccount.CreateCloudBlobClient();
+
+            // Retrieve reference to a previously created container.
+            CloudBlobContainer container = blobClient.GetContainerReference(ContainerName);
+
+            // Retrieve reference to a blob named "myblob.txt".
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(BlobName);
+
+            // Delete the blob.
+            blockBlob.Delete();
+
+            Console.WriteLine("\nFile deleted successfully");
+            Console.WriteLine("\n------------------------------------------------------------------------------------------");
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="ContainerName"></param>
-        private static void DeleteContainer(String ContainerName)
-        {
-
+        private static void DeleteContainerFromStorage(String ContainerName)
+        {            
+            
         }
 
         /// <summary>
